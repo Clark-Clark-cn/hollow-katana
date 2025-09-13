@@ -13,17 +13,17 @@
 class Character
 {
 public:
-    Character()=default;
-    ~Character()=default;
+    Character();
+    ~Character();
 
     int getHp()const{
         return hp;
     }
-    void setPos(const Vector2& pos){
-        this->pos=pos;
+    void setPosition(const Vector2& position){
+        this->position=position;
     }
-    const Vector2& getPos()const{
-        return pos;
+    const Vector2& getPosition()const{
+        return position;
     }
     void setVelocity(const Vector2& velocity){
         this->velocity=velocity;
@@ -32,32 +32,34 @@ public:
         return velocity;
     }
     Vector2 getLogicCenter()const{
-        return Vector2(pos.x,pos.y-logicH/2);
+        return Vector2(position.x,position.y-logic_height/2);
     }
     void setEnableGravity(bool enable){
-        this->enableG=enable;
+        this->enable_gravity=enable;
     }
     CollisionBox* getHitBox()const{
-        return hitBox;
+        return hit_box;
     }
     CollisionBox* getHurtBox()const{
-        return hurtBox;
+        return hurt_box;
     }
-    bool isOnGround()const{
-        return pos.y>=FLOOR_Y;
+    bool isOnFloor()const{
+        return position.y>=FLOOR_Y;
     }
     float getFloorY()const{
         return FLOOR_Y;
     }
+    
     void makeInvulnerable(){
-        isInvulnerable=true;
-        timerInvulnerableStatus.restart();
+        is_invulnerable=true;
+        timer_invulnerable_status.restart();
     }
 
-    virtual void update(int delta);
+    virtual void update(float delta);
     virtual void draw();
-    virtual void input(const ExMessage& msg);
-    virtual void onHurt();
+    virtual bool input(const ExMessage& msg);
+    virtual void decreaseHp();
+    virtual void hurt();
     void switchState(const std::string& id);
     void setAnimation(const std::string& name);
 protected:
@@ -69,18 +71,18 @@ protected:
     const float GRAVITY = 980*2;
 
     int hp=10;
-    Vector2 pos;
+    Vector2 position;
     Vector2 velocity;
-    float logicH=0;
-    bool isFacingRight=true;
-    StateMachine stateMachine;
-    bool enableG=true;
-    bool isInvulnerable=false;
-    Timer timerInvulnerableBlink;
-    Timer timerInvulnerableStatus;
-    bool isBlinkVisible=true;
-    CollisionBox* hitBox=nullptr;
-    CollisionBox* hurtBox=nullptr;
-    AnimationGroup* currentAnimation=nullptr;
-    std::unordered_map<std::string, AnimationGroup> animations;
+    float logic_height=0;
+    bool is_facing_left=true;
+    StateMachine state_machine;
+    bool enable_gravity=true;
+    bool is_invulnerable=false;
+    Timer timer_invulnerable_blink;
+    Timer timer_invulnerable_status;
+    bool is_blink_invisible=true;
+    CollisionBox* hit_box=nullptr;
+    CollisionBox* hurt_box=nullptr;
+    AnimationGroup* current_animation=nullptr;
+    std::unordered_map<std::string, AnimationGroup> animation_pool;
 };

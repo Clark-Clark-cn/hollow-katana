@@ -10,7 +10,7 @@
 class Animation
 {
 public:
-    enum class Type
+    enum class AnchorMode
     {
         Centered,
         BottomCentered
@@ -32,14 +32,14 @@ public:
     }
     ~Animation()=default;
 
-    void update(int delta){
+    void update(float delta){
         timer.update(delta);
     }
 
     void draw(){
         const Frame& frame=frames[frame_index];
-        Rect rect_dst{(int)pos.x-frame.rect.w/2,
-            type==Type::Centered?(int)pos.y-frame.rect.h/2:(int)pos.y-frame.rect.h,
+        Rect rect_dst{(int)position.x-frame.rect.w/2,
+            type==AnchorMode::Centered?(int)position.y-frame.rect.h/2:(int)position.y-frame.rect.h,
             frame.rect.w,frame.rect.h};
         drawImage(frame.img, &rect_dst,&frame.rect);
     }
@@ -48,16 +48,16 @@ public:
         timer.restart();
         frame_index=0;
     }
-    void setType(Type type){
+    void setAnchorMode(AnchorMode type){
         this->type=type;
     }
-    void setPosition(const Vector2& pos){
-        this->pos=pos;
+    void setPosition(const Vector2& position){
+        this->position=position;
     }
     void setLoop(bool is_loop){
         this->is_loop=is_loop;
     }
-    void setInterval(double interval){
+    void setInterval(float interval){
         timer.setWaitTime(interval);
     }
     void setOnComplete(std::function<void()> on_complete){
@@ -93,10 +93,10 @@ private:
     };
 
     Timer timer;
-    Vector2 pos;
+    Vector2 position;
     bool is_loop=true;
     size_t frame_index=0;
     std::vector<Frame> frames;
     std::function<void()> on_complete=nullptr;
-    Type type=Type::Centered;
+    AnchorMode type=AnchorMode::Centered;
 };

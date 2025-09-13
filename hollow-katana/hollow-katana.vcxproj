@@ -123,8 +123,43 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Explorer.cpp" />
+    <ClCompile Include="barb.cpp" />
+    <ClCompile Include="bulletTimeManager.cpp" />
+    <ClCompile Include="Character.cpp" />
+    <ClCompile Include="CharacterManager.cpp" />
+    <ClCompile Include="Collision.cpp" />
+    <ClCompile Include="enemy.cpp" />
+    <ClCompile Include="enemyStateNodes.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="player.cpp" />
+    <ClCompile Include="playerStateNodes.cpp" />
+    <ClCompile Include="ResourcesManager.cpp" />
+    <ClCompile Include="StateMachine.cpp" />
+    <ClCompile Include="Sword.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Animation.h" />
+    <ClInclude Include="Atlas.h" />
+    <ClInclude Include="barb.h" />
+    <ClInclude Include="base.h" />
+    <ClInclude Include="bulletTimeManager.h" />
+    <ClInclude Include="Character.h" />
+    <ClInclude Include="characterManager.h" />
+    <ClInclude Include="Collision.h" />
+    <ClInclude Include="enemy.h" />
+    <ClInclude Include="enemyStateNodes.h" />
+    <ClInclude Include="player.h" />
+    <ClInclude Include="playerStateNodes.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="ResourcesManager.h" />
+    <ClInclude Include="State.h" />
+    <ClInclude Include="sword.h" />
+    <ClInclude Include="Timer.h" />
+    <ClInclude Include="util.h" />
+    <ClInclude Include="Vector2.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="hollow-katana.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

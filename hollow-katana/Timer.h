@@ -11,7 +11,7 @@ public:
         pass_time=0;
         shotted=false;
     }
-    void setWaitTime(double time){
+    void setWaitTime(float time){
         wait_time=time;
     }
     void setOneShot(bool one_shot){
@@ -26,7 +26,7 @@ public:
     void resume(){
         is_paused=false;
     }
-    void update(int delta){
+    void update(float delta){
         if(is_paused) return;
         pass_time+=delta;
         if(pass_time>=wait_time)
@@ -34,12 +34,12 @@ public:
             if((!one_shot||(one_shot&&!shotted))&&callback)
                 callback();
             shotted=true;
-            pass_time=0;
+            pass_time-=wait_time;
         }
     }
 private:
-    int pass_time=0;
-    int wait_time=0;
+    float pass_time=0;
+    float wait_time=0;
     bool one_shot=false;
     bool shotted=false;
     bool is_paused=false;

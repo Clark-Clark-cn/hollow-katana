@@ -2,6 +2,7 @@
 
 #include "Vector2.h"
 #include <functional>
+#include <vector>
 
 enum class CollisionLayer
 {
@@ -15,12 +16,12 @@ class CollisionSystem;
 class CollisionBox
 {
     friend class CollisionSystem;
-    Vector2 pos; //center position
-    Vector2 size; //width and height
+    Vector2 position; //center
+    Vector2 size;
     bool enabled = true;
-    std::function<void(CollisionBox*)> on_collision;
-    CollisionLayer layer_src = CollisionLayer::None;
-    CollisionLayer layer_dst = CollisionLayer::None;
+    std::function<void()> on_collision;
+    CollisionLayer src = CollisionLayer::None;
+    CollisionLayer dest = CollisionLayer::None;
     CollisionBox()=default;
     ~CollisionBox()=default;
 public:
@@ -28,22 +29,22 @@ public:
         this->enabled=enabled;
     }
     void setLayerSrc(CollisionLayer layer){
-        this->layer_src=layer;
+        this->src=layer;
     }
     void setLayerDst(CollisionLayer layer){
-        this->layer_dst=layer;
+        this->dest=layer;
     }
-    void setOnCollision(std::function<void(CollisionBox*)> callback){
+    void setOnCollision(std::function<void()> callback){
         this->on_collision=callback;
     }
-    void setPosition(const Vector2& pos){
-        this->pos=pos;
+    void setPosition(const Vector2& position){
+        this->position=position;
     }
     void setSize(const Vector2& size){
         this->size=size;
     }
     const Vector2& getPosition()const{
-        return pos;
+        return position;
     }
     const Vector2& getSize()const{
         return size;
@@ -53,18 +54,19 @@ public:
 class CollisionSystem
 {
     std::vector<CollisionBox*> boxes;
-    static CollisionSystem* instance;
+    static CollisionSystem* instance; 
     CollisionSystem()=default;
     ~CollisionSystem()=default;
 public:
-    static CollisionSystem* getInstance(){
-        if(!instance){
-            instance=new CollisionSystem();
-        }
-        return instance;
-    }
-    void processCollisions();
+    static CollisionSystem* getInstance();
+	static void restart()
+	{
+		if (instance)
+			delete instance;
+		instance = nullptr;
+	}
+    void processCollisions() const;
     void debugDraw();
     CollisionBox* createBox();
-    void destoryBox(CollisionBox* box);
+    void destroyBox(CollisionBox* box);
 };

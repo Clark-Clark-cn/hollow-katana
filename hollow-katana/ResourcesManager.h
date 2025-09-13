@@ -6,35 +6,19 @@
 #include <graphics.h>
 #include "Atlas.h"
 
-class Explorer{
-public:
-    struct ImageInfo{
-        std::string ID;
-        std::wstring path;
-    };
-    struct AtlasInfo{
-        std::string ID;
-        std::wstring path;
-        int frameCount=0;
-    };
-private:
+class ResourcesManager{
     std::unordered_map<std::string, IMAGE*> images;
     std::unordered_map<std::string, Atlas*> atlases;
-    static std::shared_ptr<Explorer> instance;
+    static ResourcesManager* instance;
 
-    void flipImage(IMAGE* src,IMAGE* dest,int num=1);
+    static void flipImage(IMAGE* src,IMAGE* dest,int num=1);
     void flipImage(const std::string& id,const std::string& dstID,int num=1);
     void flipAtlas(const std::string& id,const std::string& dstID);
 
+    ResourcesManager() = default;
+    ~ResourcesManager() = default;
 public:
-    Explorer() = default;
-    ~Explorer() = default;
-    static Explorer* getInstance(){
-        if (!instance) {
-            instance = std::make_shared<Explorer>();
-        }
-        return instance.get();
-    }
+    static ResourcesManager* getInstance();
     static inline bool checkImageValid(IMAGE* img){return GetImageBuffer(img);}
 
     void load();

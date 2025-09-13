@@ -2,16 +2,19 @@
 #include <string>
 #include <unordered_map>
 
+class StateMachine;
+
 class StateNode
 {
+    friend class StateMachine;
+    std::string name;
 public:
     StateNode() = default;
     virtual ~StateNode() = default;
 
-    virtual void onEnter() {}
-    virtual void onExit() {}
+    virtual void enter() {}
+    virtual void exit() {}
     virtual void update(float deltaTime) {}
-private: 
 };
 
 class StateMachine
@@ -27,7 +30,7 @@ public:
     void update(float deltaTime);
 
 private:
-    bool needInit=true;
+    bool need_init=true;
     std::unordered_map<std::string, StateNode*> states;
-    StateNode* currentState = nullptr;
+    StateNode* current_state = nullptr;
 };

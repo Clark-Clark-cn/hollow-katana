@@ -1,10 +1,22 @@
-#include "Explorer.h"
+#include "ResourcesManager.h"
 #include <iostream>
 #include "base.h"
 
-std::shared_ptr<Explorer> Explorer::instance = nullptr;
+ResourcesManager *ResourcesManager::instance = nullptr;
 
-static const std::vector<Explorer::ImageInfo> imageList = {
+struct ImageInfo
+{
+    std::string ID;
+    std::wstring path;
+};
+struct AtlasInfo
+{
+    std::string ID;
+    std::wstring path;
+    int frameCount = 0;
+};
+
+static const std::vector<ImageInfo> imageList = {
     {"background", L"res/background.png"},
     {"ui_heart", L"res/ui_heart.png"},
 
@@ -13,6 +25,8 @@ static const std::vector<Explorer::ImageInfo> imageList = {
     {"player_fall_right", L"res/player/fall.png"},
     {"player_run_right", L"res/player/run.png"},
     {"player_roll_right", L"res/player/roll.png"},
+	{"player_jump_right", L"res/player/jump.png"},
+	{"player_idle_right", L"res/player/idle.png"},
 
     {"player_vfx_attack_down", L"res/player/vfx_attack_down.png"},
     {"player_vfx_attack_up", L"res/player/vfx_attack_up.png"},
@@ -21,7 +35,7 @@ static const std::vector<Explorer::ImageInfo> imageList = {
     {"player_vfx_jump", L"res/player/vfx_jump.png"},
     {"player_vfx_land", L"res/player/vfx_land.png"},
 };
-static const std::vector<Explorer::AtlasInfo> atlasList = {
+static const std::vector<AtlasInfo> atlasList = {
     {"barb_break", L"res/enemy/barb_break/%d.png", 3},
     {"barb_loose", L"res/enemy/barb_loose/%d.png", 5},
     {"silk", L"res/enemy/silk/%d.png", 9},
@@ -43,7 +57,16 @@ static const std::vector<Explorer::AtlasInfo> atlasList = {
     {"enemy_vfx_dash_on_floor_left", L"res/enemy/vfx_dash_on_floor/%d.png", 6},
 };
 
-void Explorer::flipImage(IMAGE *src, IMAGE *dest, int num)
+ResourcesManager *ResourcesManager::getInstance()
+{
+    if (!instance)
+    {
+        instance = new ResourcesManager();
+    }
+    return instance;
+}
+
+void ResourcesManager::flipImage(IMAGE *src, IMAGE *dest, int num)
 {
     int w = src->getwidth();
     int h = src->getheight();
@@ -67,10 +90,10 @@ void Explorer::flipImage(IMAGE *src, IMAGE *dest, int num)
     }
 }
 
-void Explorer::flipImage(const std::string& id, const std::string& dstID, int num)
+void ResourcesManager::flipImage(const std::string &id, const std::string &dstID, int num)
 {
-    IMAGE* src = getImage(id);
-    IMAGE* dest = new IMAGE();
+    IMAGE *src = getImage(id);
+    IMAGE *dest = new IMAGE();
     if (src && dest)
     {
         flipImage(src, dest, num);
@@ -78,13 +101,13 @@ void Explorer::flipImage(const std::string& id, const std::string& dstID, int nu
     images[dstID] = dest;
 }
 
-void Explorer::flipAtlas(const std::string& id, const std::string& dstID)
+void ResourcesManager::flipAtlas(const std::string &id, const std::string &dstID)
 {
-    Atlas* src = getAtlas(id);
-    Atlas* dest = new Atlas();
-    for(int i=0; i<src->size(); i++)
+    Atlas *src = getAtlas(id);
+    Atlas *dest = new Atlas();
+    for (int i = 0; i < src->size(); i++)
     {
-        IMAGE* srcImage = src->getImage(i);
+        IMAGE *srcImage = src->getImage(i);
         IMAGE destImage;
         flipImage(srcImage, &destImage);
         dest->addImage(destImage);
@@ -92,19 +115,14 @@ void Explorer::flipAtlas(const std::string& id, const std::string& dstID)
     atlases[dstID] = dest;
 }
 
-void Explorer::load()
+void ResourcesManager::load()
 {
     for (const auto &info : imageList)
     {
         IMAGE *img = new IMAGE();
         loadimage(img, info.path.c_str());
         if (!checkImageValid(img))
-        {
-            std::wcerr << L"Failed to load image: " << info.path << std::endl;
-            MessageBoxW(nullptr, (L"Failed to load image: " + info.path).c_str(), L"Error", MB_OK | MB_ICONERROR);
-            delete img;
-            continue;
-        }
+            throw info.path;
         images[info.ID] = img;
     }
 
@@ -115,13 +133,7 @@ void Explorer::load()
         for (auto i = 0; i < atlas->size(); ++i)
         {
             if (!checkImageValid(atlas->getImage(i)))
-            {
-                std::wcerr << L"Failed to load atlas: " << info.path << std::endl;
-                MessageBoxW(nullptr, (L"Failed to load atlas: " + info.path).c_str(), L"Error", MB_OK | MB_ICONERROR);
-                delete atlas;
-                atlas = nullptr;
-                break;
-            }
+                throw info.path;
         }
         atlases[info.ID] = atlas;
     }
@@ -172,13 +184,13 @@ void Explorer::load()
     loadAudio(L"res/audio/player_run.mp3", L"player_run");
 }
 
-Atlas *Explorer::getAtlas(const std::string &id) const
+Atlas *ResourcesManager::getAtlas(const std::string &id) const
 {
     const auto &it = atlases.find(id);
     return it != atlases.end() ? it->second : nullptr;
 }
 
-IMAGE *Explorer::getImage(const std::string &id) const
+IMAGE *ResourcesManager::getImage(const std::string &id) const
 {
     const auto &it = images.find(id);
     return it != images.end() ? it->second : nullptr;

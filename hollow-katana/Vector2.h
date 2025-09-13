@@ -47,7 +47,7 @@ public:
         return std::sqrt(x * x + y * y);
     }
 
-    Vector2 normalized() const
+    Vector2 normalize() const
     {
         float len = length();
         if (len > 0)
