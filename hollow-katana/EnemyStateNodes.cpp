@@ -109,50 +109,62 @@ void EnemyFallState::update(float delta)
 }
 EnemyIdleState::EnemyIdleState()
 {
+    static const int max_hp=Config::getInstance()->get("enemy.max_hp");
+    static const int healthy_jump_prob=Config::getInstance()->get("enemy.probility.healthy.idle.jump");
+    static const int healthy_run_prob=Config::getInstance()->get("enemy.probility.healthy.idle.run");
+    static const int healthy_squat_prob=Config::getInstance()->get("enemy.probility.healthy.idle.squat");
+    static const int healthy_throw_silk_prob=100-(healthy_jump_prob+healthy_run_prob+healthy_squat_prob);
+
+    static const int unhealthy_jump_prob=Config::getInstance()->get("enemy.probility.unhealthy.idle.jump");
+    static const int unhealthy_squat_prob=Config::getInstance()->get("enemy.probility.unhealthy.idle.squat");
+    static const int unhealthy_throw_silk_prob=Config::getInstance()->get("enemy.probility.unhealthy.idle.throw_silk");
+    static const int unhealthy_throw_barb_prob=Config::getInstance()->get("enemy.probility.unhealthy.idle.throw_barb");
+
     timer.setOneShot(true);
     timer.setCallback([&](){
         Enemy*enemy=(Enemy*)CharacterManager::getInstance()->getEnemy();
 
         int randNum=rangeRandom(0,100);
-        if(enemy->getHp()>5)
+        if(enemy->getHp()>max_hp/2)
         {
-            if(randNum<=25)
+            if(randNum<=healthy_jump_prob)
             {
                 if(!enemy->isOnFloor())
                 enemy->switchState("fall");
                 else
-                enemy->switchState("jump");      //  25%
+                enemy->switchState("jump");
             }
-            else if(randNum<=50)
+            else if(randNum<=healthy_run_prob+healthy_jump_prob)
             {
                 if(!enemy->isOnFloor())
                     enemy->switchState("fall");
                 else
-                    enemy->switchState("run");      //  25%
+                    enemy->switchState("run");
             }
-            else if(randNum<=80)
-            enemy->switchState("squat");      //  30%
-            else if(randNum<=90)
-             enemy->switchState("throw_silk");  //10%
-            else enemy->switchState("throw_sword"); //10%
+            else if(randNum<=healthy_run_prob+healthy_jump_prob+healthy_squat_prob)
+            enemy->switchState("squat");
+            else if(randNum<=healthy_throw_silk_prob+healthy_run_prob+healthy_jump_prob)
+             enemy->switchState("throw_silk");
+            else enemy->switchState("throw_sword");
         }
         else
         {
-            if(randNum<=25)
+            if(randNum<=unhealthy_jump_prob)
             {
                 if(!enemy->isOnFloor())
                     enemy->switchState("fall");
                 else
-                    enemy->switchState("jump");      //  25%
+                    enemy->switchState("jump");
             }
-            else if(randNum<=60)
-                 enemy->switchState("throw_sword");      //  35%
-            else if(randNum<=70)
-                 enemy->switchState("throw_silk");  //  10%
-            else if(randNum<=90)
-                 enemy->switchState("throw_barb");  //  20%
-            else enemy->switchState("squat");  //  10%
-        } 
+            else if(randNum<=unhealthy_squat_prob+unhealthy_jump_prob)
+                enemy->switchState("squat");
+            else if(randNum<=unhealthy_throw_silk_prob+unhealthy_squat_prob+unhealthy_jump_prob)
+                 enemy->switchState("throw_silk");
+            else if(randNum<=unhealthy_throw_barb_prob+unhealthy_throw_silk_prob+unhealthy_squat_prob+unhealthy_jump_prob)
+                 enemy->switchState("throw_barb");
+            else
+                 enemy->switchState("throw_sword");
+        }
     });
 }
 void EnemyIdleState::enter()
@@ -192,28 +204,33 @@ void EnemyJumpState::enter()
 void EnemyJumpState::update(float delta)
 {
     Enemy *enemy = (Enemy *)CharacterManager::getInstance()->getEnemy();
+    static const int max_hp = Config::getInstance()->get("enemy.max_hp");
+    static const int healthy_aim_prob=Config::getInstance()->get("enemy.probility.healthy.jump.aim");
+    static const int healthy_fall_prob=Config::getInstance()->get("enemy.probility.healthy.jump.fall");
+    static const int unhealthy_aim_prob=Config::getInstance()->get("enemy.probility.unhealthy.jump.aim");
+    static const int unhealthy_fall_prob=Config::getInstance()->get("enemy.probility.unhealthy.jump.fall");
     if (enemy->getHp() <= 0)
         enemy->switchState("dead");
     else if (enemy->getVelocity().y > 0)
     {
         int randNum = rangeRandom(0, 100);
-        if (enemy->getHp() > 5)
+        if (enemy->getHp() > max_hp/2)
         {
-            if (randNum <= 50)
-                enemy->switchState("aim"); //  50%
-            else if (randNum <= 80)
-                enemy->switchState("fall"); //  30%
+            if (randNum <= healthy_aim_prob)
+                enemy->switchState("aim");
+            else if (randNum <= healthy_fall_prob+healthy_aim_prob)
+                enemy->switchState("fall");
             else
-                enemy->switchState("throw_silk"); //  20%
+                enemy->switchState("throw_silk");
         }
         else
         {
-            if (randNum <= 50)
-                enemy->switchState("throw_silk"); //  50%
-            else if (randNum <= 80)
-                enemy->switchState("fall"); //  30%
+            if (randNum <= unhealthy_aim_prob)
+                enemy->switchState("aim");
+            else if (randNum <= unhealthy_fall_prob+unhealthy_aim_prob)
+                enemy->switchState("fall");
             else
-                enemy->switchState("aim"); //  20%
+                enemy->switchState("throw_silk");
         }
     }
 }
@@ -224,6 +241,9 @@ void EnemyRunState::enter()
 }
 void EnemyRunState::update(float delta)
 {
+    static const int healthy_squat_prob=Config::getInstance()->get("enemy.probility.healthy.run.squat");
+    static const int unhealthy_squat_prob=Config::getInstance()->get("enemy.probility.unhealthy.run.squat");
+    static const int max_hp=Config::getInstance()->get("enemy.max_hp");
     auto enemy = CharacterManager::getInstance()->getEnemy();
     const Vector2 &posEnemy = enemy->getPosition();
     const Vector2 &posPlayer = CharacterManager::getInstance()->getPlayer()->getPosition();
@@ -234,20 +254,19 @@ void EnemyRunState::update(float delta)
     else if (abs(posEnemy.x - posPlayer.x) <= MIN_DIS)
     {
         int randNum = rangeRandom(0, 100);
-        if (enemy->getHp() > 5)
+        if (enemy->getHp() > max_hp/2)
         {
-            if (randNum <= 75)
-                enemy->switchState("squat"); //  75%
+            if (randNum <= healthy_squat_prob)
+                enemy->switchState("squat");
             else
-                enemy->switchState("throw_silk"); //  25%
+                enemy->switchState("throw_silk");
         }
         else
         {
-            if (randNum <= 75)
-                enemy->switchState("throw_silk"); //  75%
-
+            if (randNum <= unhealthy_squat_prob)
+                enemy->switchState("squat");
             else
-                enemy->switchState("squat"); //  25%
+                enemy->switchState("throw_silk");
         }
         stopAudio(L"enemy_run");
     }
@@ -268,10 +287,14 @@ EnemySquatState::EnemySquatState()
 }
 void EnemySquatState::enter()
 {
+    static const Vector2 hit_box_size_squat=Config::getInstance()->get("enemy.hit_box_size_squat");
+    static const Vector2 hit_box_offset_squat=Config::getInstance()->get("enemy.hit_box_offset_squat");
     CharacterManager::getInstance()->getEnemy()->setAnimation("squat");
 
     Enemy *enemy = (Enemy *)CharacterManager::getInstance()->getEnemy();
     enemy->setFacingLeft(enemy->getPosition().x > CharacterManager::getInstance()->getPlayer()->getPosition().x);
+    enemy->getHitBox()->setSize(hit_box_size_squat);
+    enemy->setBoxOffset(hit_box_offset_squat);
     timer.restart();
 }
 void EnemySquatState::update(float delta)
@@ -280,6 +303,13 @@ void EnemySquatState::update(float delta)
     timer.update(delta);
     if (enemy->getHp() <= 0)
         enemy->switchState("dead");
+}
+void EnemySquatState::exit()
+{
+    static const Vector2 hit_box_size=Config::getInstance()->get("enemy.hit_box_size");
+    Enemy *enemy = (Enemy *)CharacterManager::getInstance()->getEnemy();
+    enemy->getHitBox()->setSize(hit_box_size);
+    enemy->setBoxOffset({0,0});
 }
 EnemyThrowBarbState::EnemyThrowBarbState()
 {
@@ -341,6 +371,11 @@ void EnemyThrowSilkState::update(float delta)
 }
 EnemyThrowSwordState::EnemyThrowSwordState()
 {
+    static const int max_hp=Config::getInstance()->get("enemy.max_hp");
+    static const int healthy_squat_prob=Config::getInstance()->get("enemy.probility.healthy.throw_sword.squat");
+    static const int healthy_jump_prob=Config::getInstance()->get("enemy.probility.healthy.throw_sword.jump");
+    static const int unhealthy_jump_prob=Config::getInstance()->get("enemy.probility.unhealthy.throw_sword.jump");
+    static const int unhealthy_throw_silk_prob=Config::getInstance()->get("enemy.probility.unhealthy.throw_sword.throw_silk");
     timerThrow.setWaitTime(0.65f);
     timerThrow.setOneShot(true);
     timerThrow.setCallback([&](){
@@ -356,24 +391,24 @@ EnemyThrowSwordState::EnemyThrowSwordState()
         Enemy*enemy=(Enemy*)CharacterManager::getInstance()->getEnemy();
 
         int randNum = rangeRandom(0, 100);
-        if(enemy->getHp() > 5)
+        if(enemy->getHp() > max_hp/2)
         {
-            if(randNum<=50)
-                enemy->switchState("squat");        //  50%
-            else if(randNum<=80)
-                enemy->switchState("jump");        //  30%
+            if(randNum<=healthy_squat_prob)
+                enemy->switchState("squat");
+            else if(randNum<=healthy_jump_prob+healthy_squat_prob)
+                enemy->switchState("jump");
             else
-                enemy->switchState("idle");            //  20%
+                enemy->switchState("idle");
         }
         else
         {
-            if(randNum<=50)
-                enemy->switchState("jump");       //  50%
-            else if(randNum<=80)
-                enemy->switchState("throw_silk");       //  30%
+            if(randNum<=unhealthy_jump_prob)
+                enemy->switchState("jump");
+            else if(randNum<=unhealthy_jump_prob+unhealthy_throw_silk_prob)
+                enemy->switchState("throw_silk");
             else
-                enemy->switchState("idle");       //  20%
-        } 
+                enemy->switchState("idle");
+        }
     });
 }
 void EnemyThrowSwordState::enter()

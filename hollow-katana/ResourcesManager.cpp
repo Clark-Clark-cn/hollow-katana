@@ -1,61 +1,9 @@
 #include "ResourcesManager.h"
 #include <iostream>
 #include "base.h"
+#include "Config.h"
 
 ResourcesManager *ResourcesManager::instance = nullptr;
-
-struct ImageInfo
-{
-    std::string ID;
-    std::wstring path;
-};
-struct AtlasInfo
-{
-    std::string ID;
-    std::wstring path;
-    int frameCount = 0;
-};
-
-static const std::vector<ImageInfo> imageList = {
-    {"background", L"res/background.png"},
-    {"ui_heart", L"res/ui_heart.png"},
-
-    {"player_attack_right", L"res/player/attack.png"},
-    {"player_dead_right", L"res/player/dead.png"},
-    {"player_fall_right", L"res/player/fall.png"},
-    {"player_run_right", L"res/player/run.png"},
-    {"player_roll_right", L"res/player/roll.png"},
-	{"player_jump_right", L"res/player/jump.png"},
-	{"player_idle_right", L"res/player/idle.png"},
-
-    {"player_vfx_attack_down", L"res/player/vfx_attack_down.png"},
-    {"player_vfx_attack_up", L"res/player/vfx_attack_up.png"},
-    {"player_vfx_attack_left", L"res/player/vfx_attack_left.png"},
-    {"player_vfx_attack_right", L"res/player/vfx_attack_right.png"},
-    {"player_vfx_jump", L"res/player/vfx_jump.png"},
-    {"player_vfx_land", L"res/player/vfx_land.png"},
-};
-static const std::vector<AtlasInfo> atlasList = {
-    {"barb_break", L"res/enemy/barb_break/%d.png", 3},
-    {"barb_loose", L"res/enemy/barb_loose/%d.png", 5},
-    {"silk", L"res/enemy/silk/%d.png", 9},
-    {"sword_left", L"res/enemy/sword/%d.png", 3},
-
-    {"enemy_aim_left", L"res/enemy/aim/%d.png", 9},
-    {"enemy_dash_in_air_left", L"res/enemy/dash_in_air/%d.png", 2},
-    {"enemy_dash_on_floor_left", L"res/enemy/dash_on_floor/%d.png", 2},
-    {"enemy_fall_left", L"res/enemy/fall/%d.png", 4},
-    {"enemy_idle_left", L"res/enemy/idle/%d.png", 6},
-    {"enemy_jump_left", L"res/enemy/jump/%d.png", 8},
-    {"enemy_run_left", L"res/enemy/run/%d.png", 8},
-    {"enemy_squat_left", L"res/enemy/squat/%d.png", 10},
-    {"enemy_throw_barb_left", L"res/enemy/throw_barb/%d.png", 8},
-    {"enemy_throw_silk_left", L"res/enemy/throw_silk/%d.png", 17},
-    {"enemy_throw_sword_left", L"res/enemy/throw_sword/%d.png", 16},
-
-    {"enemy_vfx_dash_in_air_left", L"res/enemy/vfx_dash_in_air/%d.png", 5},
-    {"enemy_vfx_dash_on_floor_left", L"res/enemy/vfx_dash_on_floor/%d.png", 6},
-};
 
 ResourcesManager *ResourcesManager::getInstance()
 {
@@ -117,7 +65,7 @@ void ResourcesManager::flipAtlas(const std::string &id, const std::string &dstID
 
 void ResourcesManager::load()
 {
-    for (const auto &info : imageList)
+    for (const auto &info : Config::getInstance()->get("res.imgs").asImageInfo())
     {
         IMAGE *img = new IMAGE();
         loadimage(img, info.path.c_str());
@@ -126,7 +74,7 @@ void ResourcesManager::load()
         images[info.ID] = img;
     }
 
-    for (const auto &info : atlasList)
+    for (const auto &info : Config::getInstance()->get("res.atlas").asAtlasInfo())
     {
         Atlas *atlas = new Atlas();
         atlas->loadimage(info.path, info.frameCount);
@@ -160,28 +108,10 @@ void ResourcesManager::load()
     flipAtlas("enemy_vfx_dash_in_air_left", "enemy_vfx_dash_in_air_right");
     flipAtlas("enemy_vfx_dash_on_floor_left", "enemy_vfx_dash_on_floor_right");
 
-    loadAudio(L"res/audio/bgm.mp3", L"bgm");
-    loadAudio(L"res/audio/barb_break.mp3", L"barb_break");
-    loadAudio(L"res/audio/bullet_time.mp3", L"bullet_time");
-
-    loadAudio(L"res/audio/enemy_dash.mp3", L"enemy_dash");
-    loadAudio(L"res/audio/enemy_run.mp3", L"enemy_run");
-    loadAudio(L"res/audio/enemy_hurt_1.mp3", L"enemy_hurt_1");
-    loadAudio(L"res/audio/enemy_hurt_2.mp3", L"enemy_hurt_2");
-    loadAudio(L"res/audio/enemy_hurt_3.mp3", L"enemy_hurt_3");
-    loadAudio(L"res/audio/enemy_throw_barbs.mp3", L"enemy_throw_barbs");
-    loadAudio(L"res/audio/enemy_throw_silk.mp3", L"enemy_throw_silk");
-    loadAudio(L"res/audio/enemy_throw_sword.mp3", L"enemy_throw_sword");
-
-    loadAudio(L"res/audio/player_attack_1.mp3", L"player_attack_1");
-    loadAudio(L"res/audio/player_attack_2.mp3", L"player_attack_2");
-    loadAudio(L"res/audio/player_attack_3.mp3", L"player_attack_3");
-    loadAudio(L"res/audio/player_dead.mp3", L"player_dead");
-    loadAudio(L"res/audio/player_hurt.mp3", L"player_hurt");
-    loadAudio(L"res/audio/player_jump.mp3", L"player_jump");
-    loadAudio(L"res/audio/player_land.mp3", L"player_land");
-    loadAudio(L"res/audio/player_roll.mp3", L"player_roll");
-    loadAudio(L"res/audio/player_run.mp3", L"player_run");
+    for(const auto& audio : Config::getInstance()->get("res.audio").asAudioInfo())
+    {
+        loadAudio(audio.path.c_str(), audio.ID.c_str());
+    }
 }
 
 Atlas *ResourcesManager::getAtlas(const std::string &id) const

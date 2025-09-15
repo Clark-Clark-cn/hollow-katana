@@ -11,6 +11,8 @@ BulletTimeManager *BulletTimeManager::getInstance()
 }
 void BulletTimeManager::postProcess()
 {
+    if (status == Status::EnterAtOnce)return;
+    if (status == Status::ExitAtOnce)progress = 0.0f;
     DWORD *buffer = GetImageBuffer();
     int w = getwidth(), h = getheight();
     for (int y = 0; y < h; y++)
@@ -22,7 +24,7 @@ void BulletTimeManager::postProcess()
             BYTE r = (BYTE)(GetBValue(color) * lerp(1.0f, DST_COLOR_FACTOR, progress));
             BYTE g = (BYTE)(GetGValue(color) * lerp(1.0f, DST_COLOR_FACTOR, progress));
             BYTE b = (BYTE)(GetRValue(color) * lerp(1.0f, DST_COLOR_FACTOR, progress));
-            buffer[idx] = BGR(RGB(b, g, r)) | (((DWORD)(BYTE)(255)) << 24);
+            buffer[idx] = BGR(RGB(r, g, b)) | (((DWORD)(BYTE)(255)) << 24);
         }
     }
 }
@@ -35,6 +37,8 @@ float BulletTimeManager::update(float delta)
     float deltaProgress = SPEED_PROGRESS * delta;
     progress += deltaProgress * (status == Status::Entering ? 1 : -1);
     if (progress < 0)progress = 0;
+    if (status == Status::EnterAtOnce)progress = 1.0f;
+    else if (status == Status::ExitAtOnce)progress = 0.0f;
     if (progress > 1.0f)progress = 1.0f;
     return delta * lerp(1.0f, DST_DELTA_FACTOR, progress);
 }

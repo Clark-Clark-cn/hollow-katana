@@ -5,12 +5,12 @@ Character::Character(){
     hit_box=CollisionSystem::getInstance()->createBox();
     hurt_box=CollisionSystem::getInstance()->createBox();
 
-    timer_invulnerable_status.setWaitTime(1.0f);
+    timer_invulnerable_status.setWaitTime(INVULNERABLE_TIME);
     timer_invulnerable_status.setOneShot(true);
     timer_invulnerable_status.setCallback([&](){
         is_invulnerable=false;
     });
-    timer_invulnerable_blink.setWaitTime(0.075f);
+    timer_invulnerable_blink.setWaitTime(INVULNERABLE_BLINK_INTERVAL);
     timer_invulnerable_blink.setOneShot(false);
     timer_invulnerable_blink.setCallback([&](){
         is_blink_invisible=!is_blink_invisible;
@@ -24,8 +24,8 @@ Character::~Character(){
 
 void Character::decreaseHp(){
     if(is_invulnerable) return;
+    rec_progress = 0;
     hp-=1;
-    std::cout << "decrease hp current hp : " << hp << std::endl;
     if(hp>0)makeInvulnerable();
     hurt();
 }
@@ -48,6 +48,12 @@ void Character::update(float delta){
     timer_invulnerable_status.update(delta);
     if(is_invulnerable)
         timer_invulnerable_blink.update(delta);
+    if(rec_progress>=max_rec_progress){
+        if(hp<max_hp){
+            hp+=1;
+            rec_progress=0;
+        }
+    }
     if(!current_animation)return;
     Animation& animation=(is_facing_left
         ? current_animation->left : current_animation->right);

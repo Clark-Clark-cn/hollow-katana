@@ -6,8 +6,9 @@ public:
    enum class Status
    {
       Entering,
-      Exiting
-
+      Exiting,
+	  EnterAtOnce,
+	  ExitAtOnce
    };
 
 static BulletTimeManager *getInstance();

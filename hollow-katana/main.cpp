@@ -28,17 +28,6 @@ static void drawBg()
     }
 }
 
-static void draw_remain_hp()
-{
-	static IMAGE* img_ui_heart = ResourcesManager::getInstance()->getImage("ui_heart");
-    Rect dst = { 0,10,img_ui_heart->getwidth(),img_ui_heart->getheight() };
-    for (int i=0;i<CharacterManager::getInstance()->getPlayer()->getHp();i++)
-    {
-        dst.x = 10 + i * 40;
-		drawImage(img_ui_heart, &dst);
-    }
-}
-
 int main(int argc, char *argv[])
 {
     using namespace std::chrono;
@@ -139,8 +128,7 @@ Control the character with WASD or Arrow Keys:
             drawBg();
         	CharacterManager::getInstance()->draw();
         	if (isDebug)CollisionSystem::getInstance()->debugDraw();
-        	draw_remain_hp();
-	    }
+}
         while (restart)Sleep(1);
 
         FlushBatchDraw();

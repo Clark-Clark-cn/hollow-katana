@@ -4,6 +4,7 @@
 #include "Animation.h"
 #include "Collision.h"
 #include "State.h"
+#include "Config.h"
 
 #include <string>
 #include <unordered_map>
@@ -32,7 +33,7 @@ public:
         return velocity;
     }
     Vector2 getLogicCenter()const{
-        return Vector2(position.x,position.y-logic_height/2);
+        return {position.x,position.y-logic_height/2};
     }
     void setEnableGravity(bool enable){
         this->enable_gravity=enable;
@@ -49,10 +50,16 @@ public:
     float getFloorY()const{
         return FLOOR_Y;
     }
-    
+    void setBoxOffset(const Vector2& offset){
+        this->box_offset=offset;
+    }
     void makeInvulnerable(){
         is_invulnerable=true;
         timer_invulnerable_status.restart();
+    }
+    bool isInvulnerable() const
+    {
+		return is_invulnerable;
     }
 
     virtual void update(float delta);
@@ -68,11 +75,17 @@ protected:
         Animation right;
     };
     const float FLOOR_Y = 620.0f;
-    const float GRAVITY = 980*2;
+    const float GRAVITY = Config::getInstance()->get("character.gravity");
+    const float INVULNERABLE_BLINK_INTERVAL = Config::getInstance()->get("character.invulnerable_blink_interval");
+    float INVULNERABLE_TIME = 1.0f;
 
     int hp=10;
+    int max_hp=10;
+    int rec_progress=0;
+    int max_rec_progress=3;
     Vector2 position;
     Vector2 velocity;
+    Vector2 box_offset={0,0};
     float logic_height=0;
     bool is_facing_left=true;
     StateMachine state_machine;

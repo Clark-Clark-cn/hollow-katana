@@ -6,12 +6,16 @@
  
 Enemy::Enemy()
 {
-    is_facing_left = true;
-    position = {1050, 200};
-    logic_height = 150;
+    hp = Config::getInstance()->get("enemy.max_hp");
+    max_hp = Config::getInstance()->get("enemy.max_hp");
+    position = Config::getInstance()->get("enemy.default_position");
+    hit_box->setSize(Config::getInstance()->get("enemy.hit_box_size"));
+    hurt_box->setSize(Config::getInstance()->get("enemy.hurt_box_size"));
+    INVULNERABLE_TIME = Config::getInstance()->get("enemy.invulnerable_time");
 
-    hit_box->setSize({50, 80});
-    hit_box->setSize({100, 180});
+    logic_height = 150;
+    is_facing_left = true;
+
 
     hit_box->setLayerSrc(CollisionLayer::None);
     hit_box->setLayerDst(CollisionLayer::Player);
@@ -22,7 +26,7 @@ Enemy::Enemy()
     collision_box_silk = CollisionSystem::getInstance()->createBox();
     collision_box_silk->setLayerSrc(CollisionLayer::None);
     collision_box_silk->setLayerDst(CollisionLayer::Player);
-    collision_box_silk->setSize({225, 225});
+    collision_box_silk->setSize(Config::getInstance()->get("enemy.silk_size"));
     collision_box_silk->setEnabled(false);
     {
         AnimationGroup &animationAim = animation_pool["aim"];
@@ -245,7 +249,7 @@ void Enemy::update(float delta)
     if (velocity.x >= 0.0001f)
         is_facing_left = (velocity.x < 0);
     Character::update(delta);
-    hit_box->setPosition(getLogicCenter());
+    hit_box->setPosition(getLogicCenter()+box_offset);
 
     if (is_throwing_silk)
     {

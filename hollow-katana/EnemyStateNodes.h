@@ -105,6 +105,7 @@ public:
 
     void enter() override;
     void update(float delta) override;
+    void exit() override;
 
 private:
     Timer timer;

@@ -1,9 +1,13 @@
 #pragma once
 
 #include "character.h"
+#include "Config.h"
+
+class StatusBar;
 
 class Player : public Character
 {
+    friend class StatusBar;
 public:
     enum class AttackDir
     {
@@ -18,6 +22,8 @@ private:
     Timer timer_attack_cd;
     bool is_attacking = false;
     bool is_attack_cd_comp = true;
+
+    Timer timer_hit_go_back;
 
     bool is_left_key_down = false;
     bool is_right_key_down = false;
@@ -36,13 +42,24 @@ private:
     Animation animation_jump_vfx;
     bool is_land_vfx_visible = false;
     Animation animation_land_vfx;
+    StatusBar* status_bar = nullptr;
 
-	const float CD_ROLL = 0.75f;
-    const float CD_ATTACK = 0.5f;
-    const float SPEED_RUN = 300.0f;
-    const float SPEED_JUMP = 780.0f;
-    const float SPEED_ROLL = 800.0f;
+	const float CD_ROLL = Config::getInstance()->get("player.cd_roll");
+    const float CD_ATTACK = Config::getInstance()->get("player.cd_attack");
+    const float SPEED_RUN = Config::getInstance()->get("player.speed_run");
+    const float SPEED_JUMP = Config::getInstance()->get("player.speed_jump");
+    const float SPEED_ROLL = Config::getInstance()->get("player.speed_roll");
+	const float TIME_GO_BACK = Config::getInstance()->get("player.time_go_back");
 
+    const int KEY_LEFT1 = Config::getInstance()->get("player.key.left1");
+    const int KEY_LEFT2 = Config::getInstance()->get("player.key.left2");
+    const int KEY_RIGHT1 = Config::getInstance()->get("player.key.right1");
+    const int KEY_RIGHT2 = Config::getInstance()->get("player.key.right2");
+    const int KEY_JUMP1 = Config::getInstance()->get("player.key.jump1");
+    const int KEY_JUMP2 = Config::getInstance()->get("player.key.jump2");
+    const int KEY_JUMP3 = Config::getInstance()->get("player.key.jump3");
+    const int KEY_ROLL1 = Config::getInstance()->get("player.key.roll1");
+    const int KEY_ROLL2 = Config::getInstance()->get("player.key.roll2");
 public:
     Player();
     ~Player();

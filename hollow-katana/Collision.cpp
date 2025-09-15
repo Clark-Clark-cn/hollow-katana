@@ -44,6 +44,8 @@ void CollisionSystem::processCollisions() const
                 std::min(src->position.y - src->size.y / 2, dst->position.y - dst->size.y / 2)) <= src->size.y + dst->size.y;
             if (is_collision_x && is_collision_y)
             {
+                if (src->on_collision)
+                    src->on_collision();
                 if (dst->on_collision)
                     dst->on_collision();
             }

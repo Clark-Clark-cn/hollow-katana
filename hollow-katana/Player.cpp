@@ -1,18 +1,24 @@
-#pragma once
 #include "player.h"
 #include <cmath>
 #include "ResourcesManager.h"
 #include "playerStateNodes.h"
 #include "bulletTimeManager.h"
+#include "CharacterManager.h"
+#include "StatusBar.h"
 
 Player::Player()
 {
-    is_facing_left = false;
-    position = {250, 200};
-    logic_height = 120;
+    status_bar = new StatusBar(this);
+    hp = Config::getInstance()->get("player.max_hp");
+    max_hp = Config::getInstance()->get("player.max_hp");
+    max_rec_progress = Config::getInstance()->get("player.max_rec_progress");
+    position = Config::getInstance()->get("player.default_position");
+    hit_box->setSize(Config::getInstance()->get("player.hit_box_size"));
+    hurt_box->setSize(Config::getInstance()->get("player.hurt_box_size"));
+    INVULNERABLE_TIME = Config::getInstance()->get("player.invulnerable_time");
 
-    hit_box->setSize({150, 150});
-    hurt_box->setSize({40, 80});
+    logic_height = 120;
+    is_facing_left = false;
 
     hit_box->setLayerSrc(CollisionLayer::None);
     hit_box->setLayerDst(CollisionLayer::Enemy);
@@ -21,6 +27,18 @@ Player::Player()
     hurt_box->setLayerDst(CollisionLayer::None);
 
     hit_box->setEnabled(false);
+    hit_box->setOnCollision([&]()
+        {
+            if (CharacterManager::getInstance()->getEnemy()->isInvulnerable())return;
+            BulletTimeManager::getInstance()->setStatus(BulletTimeManager::Status::EnterAtOnce);
+			timer_hit_go_back.restart();
+            rec_progress++;
+            if (rec_progress >= max_rec_progress)
+            {
+	            rec_progress = 0;
+				if(hp < max_hp) hp++;
+            }
+        });
     hurt_box->setOnCollision([&](){ decreaseHp(); });
 
     timer_roll_cd.setWaitTime(CD_ROLL);
@@ -30,6 +48,10 @@ Player::Player()
     timer_attack_cd.setWaitTime(CD_ATTACK);
     timer_attack_cd.setOneShot(true);
     timer_attack_cd.setCallback([&](){ is_attack_cd_comp = true; });
+
+    timer_hit_go_back.setWaitTime(TIME_GO_BACK);
+    timer_hit_go_back.setOneShot(true);
+    timer_hit_go_back.setCallback([&]() { BulletTimeManager::getInstance()->setStatus(BulletTimeManager::Status::ExitAtOnce); });
     {
         AnimationGroup& animationAttack = animation_pool["attack"];
 
@@ -184,49 +206,18 @@ bool Player::input(const ExMessage& msg)
     switch (msg.message)
     {
     case WM_KEYDOWN:
-        switch (msg.vkcode)
-        {
-        case 'A':
-        case VK_LEFT:
-            is_left_key_down = true;
-            break;
-        case 'D':
-        case VK_RIGHT:
-            is_right_key_down = true;
-            break;
-        case 'W':
-        case VK_UP:
-            is_jump_key_down = true;
-            break;
-        case 'S':
-        case VK_DOWN:
-            is_roll_key_down = true;
-            break;
-        default:return false;
-        }
+        if(msg.vkcode==KEY_LEFT1||msg.vkcode==KEY_LEFT2)is_left_key_down = true;
+        else if(msg.vkcode==KEY_RIGHT1||msg.vkcode==KEY_RIGHT2)is_right_key_down = true;
+        else if(msg.vkcode==KEY_JUMP1||msg.vkcode==KEY_JUMP2||msg.vkcode==KEY_JUMP3)is_jump_key_down = true;
+        else if(msg.vkcode==KEY_ROLL1||msg.vkcode==KEY_ROLL2)is_roll_key_down = true;
+        else return false;
         break;
     case WM_KEYUP:
-        switch (msg.vkcode)
-        {
-        case 'A':
-        case VK_LEFT:
-            is_left_key_down = false;
-            break;
-        case 'D':
-        case VK_RIGHT:
-            is_right_key_down = false;
-            break;
-        case 'W':
-        case VK_UP:
-        case VK_SPACE:
-            is_jump_key_down = false;
-            break;
-        case 'S':
-        case VK_DOWN:
-            is_roll_key_down = false;
-            break;
-        default:return false;
-        }
+        if(msg.vkcode==KEY_LEFT1||msg.vkcode==KEY_LEFT2)is_left_key_down = false;
+        else if(msg.vkcode==KEY_RIGHT1||msg.vkcode==KEY_RIGHT2)is_right_key_down = false;
+        else if(msg.vkcode==KEY_JUMP1||msg.vkcode==KEY_JUMP2||msg.vkcode==KEY_JUMP3)is_jump_key_down = false;
+        else if(msg.vkcode==KEY_ROLL1||msg.vkcode==KEY_ROLL2)is_roll_key_down=false;
+        else return false;
         break;
     case WM_LBUTTONDOWN:
         is_attack_key_down = true;
@@ -257,6 +248,7 @@ void Player::update(float delta)
 
     timer_roll_cd.update(delta);
     timer_attack_cd.update(delta);
+	timer_hit_go_back.update(delta);
     animation_jump_vfx.update(delta);
     animation_land_vfx.update(delta);
 
@@ -277,6 +269,7 @@ void Player::draw()
     Character::draw();
     if (is_attacking)
         current_slash_animation->draw();
+    status_bar->draw();
 }
 
 void Player::hurt()
